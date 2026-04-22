@@ -1,0 +1,19 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include seven_labs_myekka_ux *.css
+recursive-include seven_labs_myekka_ux *.csv
+recursive-include seven_labs_myekka_ux *.html
+recursive-include seven_labs_myekka_ux *.ico
+recursive-include seven_labs_myekka_ux *.js
+recursive-include seven_labs_myekka_ux *.json
+recursive-include seven_labs_myekka_ux *.md
+recursive-include seven_labs_myekka_ux *.png
+recursive-include seven_labs_myekka_ux *.py
+recursive-include seven_labs_myekka_ux *.svg
+recursive-include seven_labs_myekka_ux *.txt
+recursive-include seven_labs_myekka_ux *.scss
+recursive-exclude seven_labs_myekka_ux *.pyc

@@ -1,0 +1,19 @@
+[project]
+name = "seven_labs_myekka_ux"
+authors = [
+    { name = "Seven Labs Vision", email = "raghavbansalca@gmail.com"}
+]
+description = "Myekka / Shyam Ji Group ERPNext UX patches by Seven Labs Vision: on-screen toast for assignments + widened Events-tab date window in the Desk notifications bell."
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    # "frappe~=15.0.0" # Pinning Frappe is managed by the bench
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.bench.frappe-dependencies]
+frappe = ">=15.0.0"
