@@ -8,6 +8,9 @@
 //   - Notification dropdown
 //   - List view "Last Updated" columns
 //
+// Late-loading timeline entries are caught via MutationObserver so users never
+// see "X ago" — even on slow form renders.
+//
 // To roll back: remove this file from app_include_js in hooks.py and redeploy.
 
 (function () {
@@ -16,7 +19,7 @@
     const ABS_FORMAT     = "DD MMM YYYY, h:mm A";
     const TOOLTIP_FORMAT = "dddd, DD MMMM YYYY, h:mm:ss A";
 
-    // Primary timeline / comment formatter
+    // ---- 1. Override the formatter so new renders use absolute time ----
     frappe.datetime.comment_when = function (datetime, mini) {
         if (!datetime) return "";
         const m = moment(datetime);
@@ -29,7 +32,6 @@
         );
     };
 
-    // Used by some list-view / notification renderers
     if (typeof window.prettyDate === "function") {
         window.prettyDate = function (datetime) {
             if (!datetime) return "";
@@ -37,11 +39,44 @@
         };
     }
 
-    // Refresh any already-rendered relative spans on page load
-    $(document).ready(function () {
-        $(".frappe-timestamp").each(function () {
-            const ts = $(this).attr("data-timestamp") || $(this).attr("title");
-            if (ts) $(this).text(moment(ts).format(ABS_FORMAT));
-        });
+    // ---- 2. DOM patcher for spans rendered through other code paths ----
+    function patchSpan(span) {
+        if (!span || span.dataset.slvPatched === "1") return;
+        const ts = span.getAttribute("data-timestamp") || span.getAttribute("title");
+        if (!ts) return;
+        try {
+            span.textContent = moment(ts).format(ABS_FORMAT);
+            span.dataset.slvPatched = "1";
+        } catch (e) {}
+    }
+
+    function patchAll(root) {
+        (root || document).querySelectorAll(".frappe-timestamp").forEach(patchSpan);
+    }
+
+    // Initial pass on ready
+    $(document).ready(function () { patchAll(); });
+
+    // ---- 3. Watch for late-loading timeline / activity entries ----
+    const observer = new MutationObserver(function (mutations) {
+        for (const m of mutations) {
+            for (const node of m.addedNodes) {
+                if (node.nodeType !== 1) continue;
+                if (node.classList && node.classList.contains("frappe-timestamp")) {
+                    patchSpan(node);
+                } else if (node.querySelectorAll) {
+                    node.querySelectorAll(".frappe-timestamp").forEach(patchSpan);
+                }
+            }
+        }
     });
+
+    function startObserver() {
+        if (document.body) {
+            observer.observe(document.body, { childList: true, subtree: true });
+        } else {
+            setTimeout(startObserver, 100);
+        }
+    }
+    startObserver();
 })();
